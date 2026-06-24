@@ -1,0 +1,47 @@
+# Google Cloud Build configuration for Streamlit UI
+# Builds Docker image in the cloud and deploys to Cloud Run
+
+steps:
+  # Step 1: Build Docker image using Cloud Build
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-f'
+      - 'Dockerfile.streamlit'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/training-chatbot-ui:latest'
+      - '.'
+    dir: '.'
+
+  # Step 2: Push image to Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'gcr.io/$PROJECT_ID/training-chatbot-ui:latest'
+
+  # Step 3: Deploy to Cloud Run
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - 'training-chatbot-ui'
+      - '--image=gcr.io/$PROJECT_ID/training-chatbot-ui:latest'
+      - '--platform=managed'
+      - '--region=us-central1'
+      - '--allow-unauthenticated'
+      - '--memory=1Gi'
+      - '--cpu=1'
+      - '--timeout=3600'
+      - '--set-env-vars=PYTHONUNBUFFERED=1'
+
+# Image to be pushed to Container Registry
+images:
+  - 'gcr.io/$PROJECT_ID/training-chatbot-ui:latest'
+
+# Options
+options:
+  machineType: 'N1_HIGHCPU_8'
+  logging: CLOUD_LOGGING_ONLY
+
+# Timeout for build
+timeout: '4800s'

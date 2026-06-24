@@ -1,0 +1,53 @@
+#Dockerfile.streamlit
+# Dockerfile for Streamlit UI Deployment
+# Builds and runs the Streamlit customer chatbot UI on Cloud Run
+
+FROM python:3.11-slim
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements
+COPY requirements.txt .
+
+# Add Streamlit and dependencies to requirements
+RUN echo "streamlit>=1.28.0" >> requirements.txt && \
+    echo "requests>=2.31.0" >> requirements.txt && \
+    echo "pydantic>=2.5.0" >> requirements.txt
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy application code (only Streamlit UI, not FastAPI)
+COPY streamlit_ui.py .
+
+# Create directories for service account and streamlit config
+RUN mkdir -p /app/credentials ~/.streamlit
+
+# Create streamlit config file for Cloud Run
+RUN echo "[server]" > ~/.streamlit/config.toml && \
+    echo "headless = true" >> ~/.streamlit/config.toml && \
+    echo "enableXsrfProtection = false" >> ~/.streamlit/config.toml && \
+    echo "[browser]" >> ~/.streamlit/config.toml && \
+    echo "gatherUsageStats = false" >> ~/.streamlit/config.toml && \
+    echo "[client]" >> ~/.streamlit/config.toml && \
+    echo "showErrorDetails = true" >> ~/.streamlit/config.toml
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1
+ENV STREAMLIT_SERVER_HEADLESS=true
+ENV STREAMLIT_CLIENT_TOOLBAR_MODE=minimal
+
+# Expose port for Cloud Run
+EXPOSE 8080
+
+# Run Streamlit app, binding to the PORT environment variable provided by Cloud Run.
+# Using the shell form (no brackets) ensures environment variable expansion.
+CMD streamlit run streamlit_ui.py --server.port=${PORT} --server.address=0.0.0.0

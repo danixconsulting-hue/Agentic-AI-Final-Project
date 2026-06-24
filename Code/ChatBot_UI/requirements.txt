@@ -1,0 +1,23 @@
+#requirements.txt
+
+# Google ADK Customer Chatbot Agent Requirements
+
+# Core Google ADK and AI Platform
+google-adk>=0.1.0
+google-cloud-aiplatform>=1.38.0
+google-genai>=0.1.0
+
+# Vector search and embeddings
+faiss-cpu>=1.7.4
+numpy>=1.24.0
+streamlit>=1.0.0
+# PDF processing
+pypdf>=3.17.0
+PyPDF2>=3.0.0
+reportlab>=4.0.0
+
+# Web search (optional)
+tavily-python>=0.3.0
+
+# Additional utilities
+python-dotenv>=1.0.0
